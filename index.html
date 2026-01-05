@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ngofee POS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2d3436;
+            --accent: #6c5ce7;
+            --bg: #f4f7fc;
+            --white: #ffffff;
+            --text-grey: #a4b0be;
+            --gold: #fdcb6e;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: var(--primary); height: 100vh; overflow: hidden; }
+
+        /* LAYOUT */
+        .dashboard { display: grid; grid-template-columns: 250px 1fr 320px; height: 100vh; }
+
+        /* SIDEBAR */
+        .sidebar { background: var(--white); padding: 30px; display: flex; flex-direction: column; border-right: 1px solid #eee; }
+        .logo { font-size: 1.5em; font-weight: 800; color: var(--accent); margin-bottom: 50px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        
+        .nav-item { padding: 15px; color: var(--text-grey); cursor: pointer; border-radius: 12px; transition: 0.3s; margin-bottom: 10px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .nav-item:hover { background: #f8f8f8; color: var(--accent); }
+        .nav-item.active { background: #6c5ce71a; color: var(--accent); }
+        
+        .user-profile { margin-top: auto; padding-top: 20px; border-top: 1px solid #eee; }
+
+        /* MAIN CONTENT */
+        .main-content { padding: 30px; overflow-y: auto; position: relative; }
+        
+        /* SEARCH */
+        .search-bar { background: var(--white); padding: 15px 20px; border-radius: 15px; display: flex; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); margin-bottom: 30px; }
+        .search-bar input { border: none; outline: none; width: 100%; font-family: inherit; }
+
+        /* HERO & CARDS */
+        .hero-banner { 
+            background: linear-gradient(135deg, var(--accent), #a29bfe); 
+            color: white; 
+            padding: 40px; 
+            border-radius: 20px; 
+            margin-bottom: 30px; 
+            position: relative; 
+            overflow: hidden; 
+            transition: all 0.5s ease;
+        }
+        .hero-banner.concert-mode {
+            background: linear-gradient(135deg, #e17055, #d63031); /* Merah Konser */
+        }
+        
+        .hero-circle { position: absolute; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; top: -50px; right: -50px; }
+        
+        .section-title { font-size: 1.2em; font-weight: 700; margin-bottom: 20px; display: flex; justify-content: space-between; }
+        
+        .top-seller-row { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 30px; }
+        .card-top { min-width: 180px; background: var(--white); padding: 15px; border-radius: 15px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.2s; cursor: pointer; border: 2px solid transparent; }
+        .card-top:hover { transform: translateY(-5px); border-color: var(--gold); }
+        .badge-crown { position: absolute; top: -10px; left: -10px; background: var(--gold); padding: 5px 10px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .card-menu { background: var(--white); padding: 20px; border-radius: 15px; text-align: center; transition: 0.2s; border: 1px solid transparent; }
+        .card-menu:hover { border-color: var(--accent); }
+        .menu-img { width: 80px; height: 80px; background: #f0f0f0; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2em; }
+        .btn-add { background: var(--accent); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; margin-top: 10px; }
+
+        /* CART PANEL */
+        .cart-panel { background: var(--white); padding: 30px; border-left: 1px solid #eee; display: flex; flex-direction: column; }
+        .cart-items { flex: 1; overflow-y: auto; margin-top: 20px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 10px; }
+        .total-section { margin-top: auto; padding-top: 20px; border-top: 2px solid #eee; }
+        .btn-checkout { width: 100%; background: var(--primary); color: white; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-checkout:hover { opacity: 0.9; transform: scale(1.02); }
+
+        /* MODAL */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 999; }
+        .modal-box { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 400px; }
+        .modal input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        
+        <div class="sidebar">
+            <div class="logo">☕ Ngofee</div>
+            <div class="nav-item active" onclick="navigate('dashboard', this)"><span>🏠</span> Dashboard</div>
+            <div class="nav-item" onclick="navigate('menu', this)"><span>🍔</span> Menu</div>
+            
+            <div class="user-profile">
+                <div style="font-weight:bold; font-size:0.9em;" id="user-display">Tamu</div>
+                <div style="font-size:0.8em; color:#aaa;" id="user-role">Belum Login</div>
+                <button onclick="logout()" id="btn-logout" class="hidden" style="margin-top:5px; color:red; border:none; background:none; cursor:pointer; font-size:0.8em;">Logout</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="search-bar">
+                <span>🔍</span>
+                <input type="text" id="searchInput" placeholder="Cari kopi..." onkeyup="searchMenu()">
+            </div>
+
+            <div class="hero-banner" id="promo-banner">
+                <div class="hero-text">
+                    <h2 id="hero-title">Promo Gajian! 🤑</h2>
+                    <p id="hero-desc">Diskon 0% untuk pembelian di atas 1 juta.</p>
+                    <a id="concert-link" href="#" target="_blank" style="display:none; color:white; font-weight:bold; margin-top:10px; text-decoration:underline;">Lihat Detail Konser →</a>
+                </div>
+                <div class="hero-circle"></div>
+            </div>
+
+            <div class="section-title"><span>🔥 Paling Laris (Sultan)</span></div>
+            <div class="top-seller-row" id="top-sellers">Loading...</div>
+
+            <div class="section-title" id="menu-section-title"><span>☕ Daftar Menu</span></div>
+            <div class="menu-grid" id="all-menu">Loading...</div>
+        </div>
+
+        <div class="cart-panel">
+            <h3>🛒 Pesanan</h3>
+            <div class="cart-items" id="cart-list"><p style="text-align:center; color:#ccc; margin-top:50px;">Kosong</p></div>
+            <div class="total-section">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-weight:bold; font-size:1.2em;">
+                    <span>Total</span><span id="grand-total">Rp0</span>
+                </div>
+                <button class="btn-checkout" onclick="handleCheckout()">Bayar Sekarang</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth-modal" class="modal">
+        <div class="modal-box">
+            <h2 id="modal-title">🔒 Login Kasir</h2>
+            <input type="text" id="reg-username" placeholder="Username" class="hidden">
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <button class="btn-checkout" onclick="submitAuth()" style="margin-top:10px;">MASUK</button>
+            <p style="margin-top:15px; font-size:0.9em;"><a href="#" onclick="toggleMode()" style="color:var(--accent);">Ganti Mode</a></p>
+            <button onclick="document.getElementById('auth-modal').style.display='none'" style="border:none; background:none; color:#888; cursor:pointer; margin-top:10px;">Batal</button>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI ---
+        // Pastikan URL ini benar & server STB menyala
+        const API_URL = 'https://ngofee.theokaitou.my.id/api'; 
+        const FRIEND_API = 'https://marine.theokaitou.my.id/concerts';
+
+        let cart = [];
+        let allDrinks = [];
+        let isLogin = true;
+
+        const rupiah = (num) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
+
+        async function init() {
+            checkSession();
+            await loadTopSellers();
+            await loadAllMenu();
+            checkConcert(); 
+        }
+
+        // --- 1. INTEGRASI KONSER (DENGAN TANGGAL RAPI) ---
+        async function checkConcert() {
+            try {
+                const res = await fetch(FRIEND_API);
+                const json = await res.json();
+                const concerts = json.data || json; 
+                
+                // Cari Venue "PIA ARENA MM"
+                const targetConcert = concerts.find(c => 
+                    (c.venue && c.venue.toUpperCase().includes("PIA ARENA MM")) || 
+                    (c.location && c.location.toUpperCase().includes("PIA ARENA MM"))
+                );
+
+                if (targetConcert) {
+                    const banner = document.getElementById('promo-banner');
+                    const title = document.getElementById('hero-title');
+                    const desc = document.getElementById('hero-desc');
+                    const link = document.getElementById('concert-link');
+
+                    // FORMAT TANGGAL CANTIK
+                    let dateString = "Segera";
+                    if (targetConcert.date) {
+                        const dateObj = new Date(targetConcert.date);
+                        // Format: Sabtu, 13 Februari 2027
+                        dateString = dateObj.toLocaleDateString('id-ID', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        });
+                    }
+
+                    title.innerText = `Ngopi Asik di ${targetConcert.name || 'Konser'}! 🎤`;
+                    desc.innerText = `Nikmati kopi sambil nonton di ${targetConcert.venue} pada ${dateString}`;
+                    banner.classList.add('concert-mode');
+                    
+                    if(targetConcert.link || targetConcert.url) {
+                        link.href = targetConcert.link || targetConcert.url;
+                        link.style.display = "inline-block";
+                    }
+                }
+            } catch (err) { console.error("Gagal load konser:", err); }
+        }
+
+        // --- NAVIGASI ---
+        function navigate(viewName, element) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if(element) element.classList.add('active');
+            
+            if (viewName === 'menu') {
+                document.getElementById('menu-section-title').scrollIntoView({ behavior: 'smooth' });
+                document.querySelectorAll('.nav-item')[0].classList.add('active'); 
+                if(element) element.classList.remove('active'); 
+            } else if (viewName === 'dashboard') {
+                document.querySelector('.main-content').scrollTop = 0;
+            }
+        }
+        
+        // --- LOAD DATA ---
+        async function loadTopSellers() {
+            try {
+                const res = await fetch(`${API_URL}/drinks/top/expensive`);
+                if (!res.ok) throw new Error("Gagal connect API");
+                const json = await res.json();
+                document.getElementById('top-sellers').innerHTML = json.data.map(d => `
+                    <div class="card-top" onclick="addToCart(${d.id}, '${d.name}', ${d.price})">
+                        <div class="badge-crown">👑</div><div style="font-size:30px; text-align:center;">🥤</div>
+                        <h4 style="font-size:0.9em;">${d.name}</h4><b style="color:var(--accent);">${rupiah(d.price)}</b>
+                    </div>
+                `).join('');
+            } catch(e) { 
+                console.log(e);
+                document.getElementById('top-sellers').innerHTML = '<small>Gagal memuat data (Cek Console)</small>'; 
+            }
+        }
+
+        async function loadAllMenu() {
+            try {
+                const res = await fetch(`${API_URL}/drinks`);
+                if (!res.ok) throw new Error("Gagal connect API");
+                const json = await res.json(); allDrinks = json.data; renderMenu(allDrinks);
+            } catch(e) { 
+                console.log(e);
+                document.getElementById('all-menu').innerHTML = '<small>Gagal memuat menu</small>'; 
+            }
+        }
+
+        function renderMenu(data) {
+            document.getElementById('all-menu').innerHTML = data.map(d => `
+                <div class="card-menu">
+                    <div class="menu-img">☕</div><h4 style="font-size:0.9em;height:40px;">${d.name}</h4>
+                    <div style="font-weight:bold; color:#555;">${rupiah(d.price)}</div>
+                    <button class="btn-add" onclick="addToCart(${d.id}, '${d.name}', ${d.price})">+</button>
+                </div>
+            `).join('');
+        }
+
+        function searchMenu() {
+            const val = document.getElementById('searchInput').value.toLowerCase();
+            renderMenu(allDrinks.filter(d => d.name.toLowerCase().includes(val)));
+        }
+
+        // --- CART & PAYMENT ---
+        function addToCart(id, name, price) {
+            const item = cart.find(i => i.id === id);
+            if(item) item.qty++; else cart.push({ id, name, price, qty: 1 });
+            renderCart();
+        }
+
+        function renderCart() {
+            const el = document.getElementById('cart-list');
+            if(cart.length === 0) { el.innerHTML = '<p style="text-align:center; color:#ccc; margin-top:50px;">Kosong</p>'; document.getElementById('grand-total').innerText = 'Rp0'; return; }
+            let total = 0;
+            el.innerHTML = cart.map((item, idx) => {
+                total += item.price * item.qty;
+                return `<div class="cart-item"><div><b>${item.name}</b> <small>(${item.qty}x)</small></div>
+                <div>${rupiah(item.price * item.qty)} <span style="color:red; cursor:pointer;" onclick="cart.splice(${idx},1); renderCart()">×</span></div></div>`;
+            }).join('');
+            document.getElementById('grand-total').innerText = rupiah(total);
+        }
+
+        function handleCheckout() {
+            if(cart.length===0) return alert("Belanja dulu!");
+            const token = localStorage.getItem('token');
+            if(!token) document.getElementById('auth-modal').style.display='flex'; else processPayment(token);
+        }
+
+        async function processPayment(token) {
+            if(!confirm("Bayar sekarang?")) return;
+            try {
+                // Ubah format cart: qty -> quantity (sesuai backend)
+                const checkoutItems = cart.map(item => ({
+                    id: item.id,
+                    quantity: item.qty
+                }));
+                
+                const res = await fetch(`${API_URL}/drinks/checkout`, {
+                    method: 'POST', headers: {'Content-Type':'application/json', 'Authorization':`Bearer ${token}`},
+                    body: JSON.stringify({items: checkoutItems})
+                });
+                const json = await res.json();
+                console.log('Checkout response:', json); // Debug
+                
+                if(json.status === 'success') { 
+                    alert(`✅ SUKSES!\nOrder ID: ${json.order_id}\nTotal: ${rupiah(json.total)}`); 
+                    cart=[]; 
+                    renderCart(); 
+                } else {
+                    alert("Gagal: " + (json.message || json.error || "Unknown error"));
+                }
+            } catch(e) { 
+                console.error("Checkout error:", e);
+                alert("Error koneksi saat checkout: " + e.message); 
+            }
+        }
+
+        // --- 2. PERBAIKAN AUTH (DEBUGGING) ---
+        async function submitAuth() {
+            const email = document.getElementById('email').value.trim(); 
+            const pass = document.getElementById('password').value.trim(); 
+            const uname = document.getElementById('reg-username').value.trim();
+            
+            // Validasi input sebelum kirim ke server
+            if (!email || !pass) {
+                alert("Email dan Password wajib diisi!");
+                return;
+            }
+            if (!isLogin && !uname) {
+                alert("Username wajib diisi untuk registrasi!");
+                return;
+            }
+            
+            const endpoint = isLogin ? '/auth/login' : '/auth/register'; 
+            const payload = isLogin ? {email, password:pass} : {username:uname, email, password:pass};
+            
+            console.log(`Mencoba akses ke: ${API_URL}${endpoint}`); // Debug Log
+            console.log('Payload:', payload); // Debug payload
+
+            try {
+                const res = await fetch(API_URL+endpoint, { 
+                    method:'POST', 
+                    headers:{'Content-Type':'application/json'}, 
+                    body:JSON.stringify(payload) 
+                });
+                
+                // Ambil response body dulu sebelum cek status
+                const json = await res.json();
+                console.log('Server response:', json); // Debug response
+                
+                // Cek status HTTP (misal 404 atau 500)
+                if (!res.ok) {
+                    // Tampilkan pesan error dari server jika ada
+                    const errMsg = json.message || json.error || `Server Error: ${res.status}`;
+                    throw new Error(errMsg);
+                }
+
+                if(json.status==='success') {
+                    if(isLogin) { 
+                        localStorage.setItem('token', json.data.token); 
+                        localStorage.setItem('username', json.data.username); 
+                        checkSession(); 
+                        document.getElementById('auth-modal').style.display='none'; 
+                        processPayment(json.data.token); 
+                    } else { 
+                        alert("Daftar berhasil, login kuy!"); 
+                        toggleMode(); 
+                    }
+                } else {
+                    alert(json.message || "Terjadi kesalahan"); // Pesan error dari backend
+                }
+            } catch(e) { 
+                console.error("LOGIN ERROR:", e);
+                // Tampilkan error asli biar tau masalahnya apa
+                alert("Gagal: " + e.message + "\n(Cek Console F12 untuk detail)"); 
+            }
+        }
+
+        function toggleMode() { isLogin = !isLogin; document.getElementById('reg-username').classList.toggle('hidden'); document.getElementById('modal-title').innerText = isLogin ? '🔒 Login' : '📝 Daftar Akun'; }
+        
+        function checkSession() {
+            const user = localStorage.getItem('username');
+            if(user) { document.getElementById('user-display').innerText = user; document.getElementById('user-role').innerText = 'User'; document.getElementById('btn-logout').classList.remove('hidden'); }
+            else { document.getElementById('user-display').innerText = 'Tamu'; document.getElementById('user-role').innerText = 'Belum Login'; document.getElementById('btn-logout').classList.add('hidden'); }
+        }
+        function logout() { localStorage.clear(); checkSession(); alert("Bye!"); }
+
+        init();
+    </script>
+</body>
+</html>
