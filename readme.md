@@ -33,18 +33,3 @@ Project ini disusun untuk memenuhi **Tugas Besar / UAS Teknologi Sistem Terdistr
 * **Containerization**: Docker & Docker Compose
 * **Security**: BCryptJS, JWT, CORS
 
----
-
-## 📂 Struktur Project
-
-```text
-.
-├── config/             # Konfigurasi Database (PostgreSQL)
-├── controllers/        # Logika bisnis (Auth & Drink Controller)
-├── public/             # Frontend Static Files (HTML, CSS, JS)
-├── routes/             # Definisi Endpoint API
-├── .env                # Environment Variables (Tidak di-upload ke git)
-├── docker-compose.yml  # Orkestrasi Container
-├── Dockerfile          # Image Build Instruction
-├── server.js           # Entry Point Aplikasi
-└── package.json        # Dependencies Node.js
